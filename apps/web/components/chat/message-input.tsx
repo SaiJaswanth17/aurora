@@ -302,6 +302,7 @@ export function MessageInput({ channelId, isDm = false }: MessageInputProps) {
               onChange={handleFileSelect}
               className="hidden"
               accept="image/*,video/*,audio/*"
+              aria-label="Upload file attachment"
             />
             <button
               type="button"
@@ -309,17 +310,20 @@ export function MessageInput({ channelId, isDm = false }: MessageInputProps) {
               disabled={isUploading}
               className={`p-2 -ml-2 text-discord-text-muted hover:text-discord-text transition-colors ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
               title="Attach a file"
+              aria-label="Attach a file"
             >
               {isUploading ? (
-                <div className="w-6 h-6 border-2 border-discord-text-muted border-t-transparent rounded-full animate-spin" />
+                <div className="w-6 h-6 border-2 border-discord-text-muted border-t-transparent rounded-full animate-spin" aria-label="Uploading" />
               ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" /></svg>
               )}
             </button>
 
             {/* Text Input */}
             <form onSubmit={handleSubmit} className="flex-1 mx-2 flex">
+              <label htmlFor="message-input" className="sr-only">Message</label>
               <textarea
+                id="message-input"
                 ref={textareaRef}
                 value={message}
                 onChange={e => handleTyping(e.target.value)}
@@ -327,10 +331,10 @@ export function MessageInput({ channelId, isDm = false }: MessageInputProps) {
                 placeholder="Message"
                 className="w-full bg-transparent text-discord-text placeholder-discord-text-muted focus:outline-none resize-none h-6 py-0.5"
                 rows={1}
-                style={{ maxHeight: '200px' }}
                 maxLength={2000}
+                aria-label="Type your message"
               />
-              <button type="submit" className="hidden" />
+              <button type="submit" className="hidden" aria-label="Submit message" />
             </form>
 
             {/* Right Side Icons */}

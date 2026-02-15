@@ -239,7 +239,7 @@ export class WebSocketService {
 
         try {
             const { data: participation } = await this.supabase
-                .from('conversation_participants')
+                .from('conversation_members')
                 .select('conversation_id')
                 .eq('conversation_id', payload.conversationId)
                 .eq('user_id', ws.data.userId!)

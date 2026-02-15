@@ -6,7 +6,6 @@ import { useChannelMessages, useTypingUsers, useActiveChannel, useChatStore } fr
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
 
 import { useAuth } from '@/lib/auth/auth-context';
-import { decryptMessage } from '@/lib/crypto/encryption';
 import { normalizeMessage } from '@/lib/message-utils';
 
 interface MessageListProps {
@@ -97,15 +96,9 @@ export function MessageList({ channelId }: MessageListProps) {
         const data = await res.json();
 
         if (data.messages) {
-          // Decrypt historical messages
-          const decryptedMessages = await Promise.all(
-            data.messages.map(async (msg: any) => {
-              const decryptedContent = await decryptMessage(msg.content, 'aurora-secure-shared-secret');
-              const normalized = normalizeMessage({ ...msg, content: decryptedContent });
-              return normalized;
-            })
-          );
-          useChatStore.getState().addMessages(channelId, decryptedMessages);
+          // Temporarily disabled decryption for debugging
+          const normalizedMessages = data.messages.map((msg: any) => normalizeMessage(msg));
+          useChatStore.getState().addMessages(channelId, normalizedMessages);
         }
       } catch (error) {
         console.error('Failed to load messages:', error);

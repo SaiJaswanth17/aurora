@@ -5,9 +5,6 @@ import { useCallback } from 'react';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useWebSocket } from './websocket-context';
 import { WS_EVENTS, Message, DirectMessage, UserStatus } from '@aurora/shared';
-import { encryptMessage, decryptMessage } from '../crypto/encryption';
-
-const E2EE_SECRET = 'aurora-secure-shared-secret'; // Temporary demo secret
 
 export function useChatWebSocket() {
   const { send, on } = useWebSocket();
@@ -15,8 +12,8 @@ export function useChatWebSocket() {
   // Send message to channel
   const sendMessage = useCallback(
     async (channelId: string, content: string, attachments?: string[]) => {
-      const encryptedContent = await encryptMessage(content, E2EE_SECRET);
-      send('message', { channelId, content: encryptedContent, attachments });
+      // Temporarily disabled encryption for debugging
+      send('message', { channelId, content, attachments });
     },
     [send]
   );
@@ -24,8 +21,8 @@ export function useChatWebSocket() {
   // Send direct message
   const sendDirectMessage = useCallback(
     async (conversationId: string, content: string, attachments?: string[]) => {
-      const encryptedContent = await encryptMessage(content, E2EE_SECRET);
-      send('dm_message', { conversationId, content: encryptedContent, attachments });
+      // Temporarily disabled encryption for debugging
+      send('dm_message', { conversationId, content, attachments });
     },
     [send]
   );
@@ -107,8 +104,8 @@ export function useChatWebSocket() {
     (callback: (message: Message) => Promise<void> | void) => {
       const wrappedCallback = async (data: unknown) => {
         const message = data as Message;
-        const decryptedContent = await decryptMessage(message.content, E2EE_SECRET);
-        callback({ ...message, content: decryptedContent });
+        // Temporarily disabled decryption for debugging
+        callback(message);
       };
       return on(WS_EVENTS.NEW_MESSAGE, wrappedCallback);
     },
@@ -120,8 +117,8 @@ export function useChatWebSocket() {
     (callback: (message: DirectMessage) => Promise<void> | void) => {
       const wrappedCallback = async (data: unknown) => {
         const message = data as DirectMessage;
-        const decryptedContent = await decryptMessage(message.content, E2EE_SECRET);
-        callback({ ...message, content: decryptedContent });
+        // Temporarily disabled decryption for debugging
+        callback(message);
       };
       return on(WS_EVENTS.NEW_DM_MESSAGE, wrappedCallback);
     },

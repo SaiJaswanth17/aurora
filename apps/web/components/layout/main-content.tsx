@@ -7,6 +7,7 @@ import { useActiveChannel, useChatStore } from '@/stores/chat-store';
 import { useChannelById } from '@/stores/server-store';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
+import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
 
 
 interface ConversationDetails {
@@ -23,6 +24,7 @@ export function MainContent() {
   const supabase = createClient();
   const { user } = useAuth();
   const [showOptions, setShowOptions] = useState(false);
+  const { joinConversation, leaveConversation, joinChannel, leaveChannel } = useChatWebSocket();
 
   useEffect(() => {
     async function fetchDmDetails() {
@@ -66,6 +68,28 @@ export function MainContent() {
 
     fetchDmDetails();
   }, [activeChannelId, activeChannel, supabase, user?.id]);
+
+  // Join/leave conversations and channels when active channel changes
+  useEffect(() => {
+    if (!activeChannelId) return;
+
+    if (dmDetails) {
+      // It's a DM conversation
+      joinConversation(activeChannelId);
+      return () => {
+        leaveConversation(activeChannelId);
+      };
+    } else if (activeChannel) {
+      // It's a server channel
+      joinChannel(activeChannelId);
+      return () => {
+        leaveChannel(activeChannelId);
+      };
+    }
+    
+    // Return empty cleanup function if neither condition is met
+    return () => {};
+  }, [activeChannelId, dmDetails, activeChannel, joinConversation, leaveConversation, joinChannel, leaveChannel]);
 
   // Click outside to close options
   useEffect(() => {
