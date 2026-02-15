@@ -26,6 +26,37 @@ export async function POST(request: Request) {
             process.env.SUPABASE_SERVICE_ROLE_KEY!
         );
 
+        // Validate that both users exist in profiles table
+        const { data: currentUserProfile, error: currentUserError } = await adminSupabase
+            .from('profiles')
+            .select('id')
+            .eq('id', user.id)
+            .single();
+
+        if (currentUserError || !currentUserProfile) {
+            console.error('Current user profile not found:', currentUserError);
+            return NextResponse.json({ 
+                error: 'Your profile was not found. Please try logging out and back in.',
+                details: 'Profile not found in database'
+            }, { status: 400 });
+        }
+
+        const { data: participantProfile, error: participantError } = await adminSupabase
+            .from('profiles')
+            .select('id')
+            .eq('id', participantId)
+            .single();
+
+        if (participantError || !participantProfile) {
+            console.error('Participant profile not found:', participantError);
+            return NextResponse.json({ 
+                error: 'The user you are trying to message does not exist.',
+                details: 'Participant profile not found in database'
+            }, { status: 400 });
+        }
+
+        console.log('Both users validated successfully');
+
         // Check if conversation already exists between these two users
         // Find conversations where both users are members
         const { data: userConversations, error: fetchError } = await adminSupabase
