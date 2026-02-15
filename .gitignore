@@ -3,6 +3,8 @@ dist/
 .next/
 *.log
 .env
+.env.example
+.env.local
 .DS_Store
 *.local
 .turbo/
