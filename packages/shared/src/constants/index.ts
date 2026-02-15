@@ -9,7 +9,9 @@ export const WS_EVENTS = {
   PRESENCE_UPDATE: 'presence_update',
   JOIN_CHANNEL: 'join_channel',
   LEAVE_CHANNEL: 'leave_channel',
-  
+  JOIN_CONVERSATION: 'join_conversation',
+  LEAVE_CONVERSATION: 'leave_conversation',
+
   // Server -> Client
   AUTH_SUCCESS: 'auth_success',
   AUTH_ERROR: 'auth_error',

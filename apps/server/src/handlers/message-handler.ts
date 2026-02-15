@@ -1,21 +1,13 @@
 import { ServerWebSocket } from 'bun';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { WS_EVENTS } from '@aurora/shared';
-import { WebSocketServer } from '../websocket/server';
-
-interface WebSocketData {
-  userId?: string;
-  user?: any;
-  channels: Set<string>;
-  conversations: Set<string>;
-  isAuthenticated: boolean;
-  lastPing: number;
-}
+import { IConnectionManager } from '../services/connection-manager';
+import { WebSocketData } from '../types';
 
 export class MessageHandler {
   constructor(
     private supabase: SupabaseClient,
-    private server: WebSocketServer
+    private connectionManager: IConnectionManager
   ) { }
 
   async handleChannelMessage(
@@ -93,13 +85,18 @@ export class MessageHandler {
         return;
       }
 
-      // Broadcast to all users in the channel
-      this.server.broadcastToChannel(channelId, {
+      // Broadcast to all users in the channel via ConnectionManager
+      const connections = this.connectionManager.getConnectionsInScope({ channelId });
+      const broadcastMsg = {
         type: WS_EVENTS.NEW_MESSAGE,
         payload: message
+      };
+
+      connections.forEach(connId => {
+        this.connectionManager.sendToConnection(connId, broadcastMsg);
       });
 
-      console.log(`💬 New message in channel ${channelId} from ${ws.data.userId}. Broadcast complete.`);
+      console.log(`💬 New message in channel ${channelId} from ${ws.data.userId}. Broadcast to ${connections.length} connections.`);
     } catch (error) {
       console.error('Message handler error:', error);
       ws.send(JSON.stringify({
@@ -168,23 +165,20 @@ export class MessageHandler {
         .select('user_id')
         .eq('conversation_id', conversationId);
 
-      console.log(`[DM] Found ${members?.length || 0} members for conversation ${conversationId}`);
+      const targetUserIds = members?.map(m => m.user_id) || [];
 
-      // Broadcast to all conversation members
-      members?.forEach(member => {
-        const connection = this.server.getConnection(member.user_id);
-        if (connection) {
-          console.log(`[DM] Broadcasting to online user ${member.user_id}`);
-          this.server.broadcastToUser(member.user_id, {
-            type: WS_EVENTS.NEW_DM_MESSAGE,
-            payload: message
-          });
-        } else {
-          console.log(`[DM] User ${member.user_id} is offline/not connected`);
-        }
+      // Use ConnectionManager to find connections for these users
+      const connections = this.connectionManager.getConnectionsInScope({ userIds: targetUserIds });
+      const broadcastMsg = {
+        type: WS_EVENTS.NEW_DM_MESSAGE,
+        payload: message
+      };
+
+      connections.forEach(connId => {
+        this.connectionManager.sendToConnection(connId, broadcastMsg);
       });
 
-      console.log(`📩 New DM in conversation ${conversationId} from ${ws.data.userId}`);
+      console.log(`📩 New DM in conversation ${conversationId} from ${ws.data.userId}. Broadcast to ${connections.length} connections.`);
     } catch (error) {
       console.error('DM handler error:', error);
       ws.send(JSON.stringify({

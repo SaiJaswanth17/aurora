@@ -1,6 +1,7 @@
+
 'use client';
 
-import { WS_CONFIG } from '@aurora/shared';
+import { WS_CONFIG, WS_EVENTS } from '@aurora/shared';
 
 interface WebSocketClientOptions {
   url: string;
@@ -10,15 +11,18 @@ export class WebSocketClient {
   private ws: WebSocket | null = null;
   private reconnectAttempts = 0;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private isConnecting = false;
   private isDestroyed = false;
   private listeners: Map<string, ((data: unknown) => void)[]> = new Map();
+  private authToken: string | undefined;
 
   constructor(private options: WebSocketClientOptions) { }
 
-  async connect(): Promise<void> {
+  async connect(token?: string): Promise<void> {
     if (this.isConnecting || this.isDestroyed) return;
 
+    this.authToken = token; // Store for reconnections
     this.isConnecting = true;
 
     try {
@@ -55,7 +59,34 @@ export class WebSocketClient {
     console.log('🔌 WebSocket connected');
     this.isConnecting = false;
     this.reconnectAttempts = 0;
+
+    // Start Heartbeat
+    this.startHeartbeat();
+
+    // Authenticate if token present
+    if (this.authToken) {
+      this.send(WS_EVENTS.AUTH, { token: this.authToken });
+    }
+
     this.emit('connected', null);
+  }
+
+  private startHeartbeat() {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+
+    // Ping every 25 seconds (safe margin below server's 30s check)
+    this.heartbeatInterval = setInterval(() => {
+      if (this.isConnected()) {
+        this.send('ping');
+      }
+    }, 25000);
+  }
+
+  private stopHeartbeat() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
   }
 
   private handleMessage(event: MessageEvent): void {
@@ -67,6 +98,11 @@ export class WebSocketClient {
         return;
       }
 
+      if (data.type === 'pong') {
+        // Server alive
+        return;
+      }
+
       this.emit(data.type, data.payload);
     } catch (error) {
       console.error('WebSocket message parsing error:', error);
@@ -75,6 +111,7 @@ export class WebSocketClient {
 
   private handleClose(event: CloseEvent): void {
     console.log('🔌 WebSocket disconnected:', event.code, event.reason);
+    this.stopHeartbeat();
     this.ws = null;
     this.isConnecting = false;
     this.emit('disconnected', { code: event.code, reason: event.reason });
@@ -95,7 +132,8 @@ export class WebSocketClient {
 
     this.reconnectTimeout = setTimeout(() => {
       this.reconnectAttempts++;
-      this.connect().catch(error => {
+      // Reconnect with stored token
+      this.connect(this.authToken).catch(error => {
         console.error('Reconnection failed:', error);
       });
     }, delay);
@@ -137,6 +175,7 @@ export class WebSocketClient {
 
   disconnect(): void {
     this.isDestroyed = true;
+    this.stopHeartbeat();
 
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);

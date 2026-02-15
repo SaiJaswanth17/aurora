@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -28,7 +29,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    let wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001';
+    let wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3002';
 
     // Handle relative URLs for proxying (e.g. /api/socket)
     if (wsUrl.startsWith('/')) {
@@ -39,21 +40,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     const newClient = new WebSocketClient({ url: wsUrl });
 
     // Set up event listeners
-    const unsubscribeConnected = newClient.on('connected', async () => {
+    const unsubscribeConnected = newClient.on('connected', () => {
       console.log('WebSocket connected to server');
       setIsConnected(true);
-
-      // Authenticate with WebSocket server
-      // In a real app, you'd get the JWT from Supabase session
-      const { createClient } = await import('../supabase/client');
-      const supabase = createClient();
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (session?.access_token) {
-        newClient.send('auth', { token: session.access_token });
-      }
     });
 
     const unsubscribeDisconnected = newClient.on('disconnected', () => {
@@ -74,10 +63,23 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       console.error('WebSocket authentication error:', data);
     });
 
-    // Connect to WebSocket
-    newClient.connect().catch(error => {
-      console.error('Failed to connect to WebSocket:', error);
-    });
+    // Initialize connection with token
+    (async () => {
+      try {
+        const { createClient } = await import('../supabase/client');
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
+        if (session?.access_token) {
+          await newClient.connect(session.access_token);
+        } else {
+          console.warn('No session token found, connecting without auth');
+          await newClient.connect();
+        }
+      } catch (err) {
+        console.error('Failed to initialize WebSocket connection:', err);
+      }
+    })();
 
     setClient(newClient);
 

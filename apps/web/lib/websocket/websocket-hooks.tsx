@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useCallback } from 'react';
@@ -45,6 +46,22 @@ export function useChatWebSocket() {
     [send]
   );
 
+  // Start typing in conversation (DM)
+  const startTypingConversation = useCallback(
+    (conversationId: string) => {
+      send('typing_start', { conversationId });
+    },
+    [send]
+  );
+
+  // Stop typing in conversation (DM)
+  const stopTypingConversation = useCallback(
+    (conversationId: string) => {
+      send('typing_stop', { conversationId });
+    },
+    [send]
+  );
+
   // Join channel
   const joinChannel = useCallback(
     (channelId: string) => {
@@ -57,6 +74,22 @@ export function useChatWebSocket() {
   const leaveChannel = useCallback(
     (channelId: string) => {
       send('leave_channel', { channelId });
+    },
+    [send]
+  );
+
+  // Join conversation
+  const joinConversation = useCallback(
+    (conversationId: string) => {
+      send(WS_EVENTS.JOIN_CONVERSATION || 'join_conversation', { conversationId });
+    },
+    [send]
+  );
+
+  // Leave conversation
+  const leaveConversation = useCallback(
+    (conversationId: string) => {
+      send(WS_EVENTS.LEAVE_CONVERSATION || 'leave_conversation', { conversationId });
     },
     [send]
   );
@@ -97,9 +130,9 @@ export function useChatWebSocket() {
 
   // Listen to typing indicators
   const onUserTyping = useCallback(
-    (callback: (data: { channelId: string; userId: string; username: string }) => void) => {
+    (callback: (data: { channelId?: string; conversationId?: string; userId: string; username: string }) => void) => {
       const wrappedCallback = (data: unknown) => {
-        callback(data as { channelId: string; userId: string; username: string });
+        callback(data as { channelId?: string; conversationId?: string; userId: string; username: string });
       };
       return on(WS_EVENTS.USER_TYPING, wrappedCallback);
     },
@@ -123,8 +156,12 @@ export function useChatWebSocket() {
     sendDirectMessage,
     startTyping,
     stopTyping,
+    startTypingConversation,
+    stopTypingConversation,
     joinChannel,
     leaveChannel,
+    joinConversation,
+    leaveConversation,
     updatePresence,
 
     // Event listeners
