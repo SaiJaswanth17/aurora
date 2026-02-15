@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { WebSocketServer } from './websocket/server';
 import { PORT_RANGES } from '@aurora/shared';
 import { findAvailablePort } from './utils/port';

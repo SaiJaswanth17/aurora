@@ -1,6 +1,5 @@
 import { ServerWebSocket } from 'bun';
 import { SupabaseClient } from '@supabase/supabase-js';
-import jwt from 'jsonwebtoken';
 import { WS_EVENTS, User } from '@aurora/shared';
 import { WebSocketServer } from '../websocket/server';
 
