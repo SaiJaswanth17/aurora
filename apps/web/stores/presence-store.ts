@@ -13,7 +13,7 @@ interface PresenceState {
   clearUsers: () => void;
 }
 
-export const usePresenceStore = create<PresenceState>((set, get) => ({
+export const usePresenceStore = create<PresenceState>((set) => ({
   // Initial state
   users: {},
   onlineUsers: new Set(),

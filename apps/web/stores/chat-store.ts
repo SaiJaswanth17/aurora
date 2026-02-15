@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Message, User } from '@aurora/shared';
+import { Message } from '@aurora/shared';
 
 interface ChatState {
   // Messages by channel
@@ -14,7 +14,7 @@ interface ChatState {
   setActiveChannel: (channelId: string | null) => void;
   addMessage: (channelId: string, message: Message) => void;
   addMessages: (channelId: string, messages: Message[], prepend?: boolean) => void;
-  setTyping: (channelId: string, userId: string, username: string) => void;
+  setTyping: (channelId: string, userId: string) => void;
   removeTyping: (channelId: string, userId: string) => void;
   setLoading: (loading: boolean) => void;
   setHasMore: (channelId: string, hasMore: boolean) => void;
@@ -24,7 +24,7 @@ interface ChatState {
   deleteMessage: (channelId: string, messageId: string) => void;
 }
 
-export const useChatStore = create<ChatState>((set, get) => ({
+export const useChatStore = create<ChatState>((set) => ({
   // Initial state
   messages: {},
   typingUsers: {},
@@ -76,7 +76,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     });
   },
 
-  setTyping: (channelId, userId, username) => {
+  setTyping: (channelId, userId) => {
     set(state => ({
       typingUsers: {
         ...state.typingUsers,

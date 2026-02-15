@@ -11,7 +11,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
 
-export function AppShell() {
+export function AppShell({ children }: { children?: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useRequireAuth();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const router = useRouter();
@@ -95,7 +95,7 @@ export function AppShell() {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col bg-discord-background min-w-0">
-        <MainContent />
+        {children || <MainContent />}
       </div>
 
       {/* Member Sidebar - 240px wide, hidden on smaller screens */}

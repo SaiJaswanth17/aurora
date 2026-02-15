@@ -190,8 +190,7 @@ export const useAuthStore = create<AuthState & AuthActions>()(
                 console.error('Profile creation API call failed:', apiError);
               }
 
-              // No need to insert manually anymore
-              const insertError = null;
+
 
               set({
                 user: {

@@ -23,15 +23,7 @@ export function CreateServerModal({ onClose }: CreateServerModalProps) {
         setLoading(true);
         try {
             // Create server
-            const { data: server, error: serverError } = await supabase
-                .from('server_members') // rpc or direct insert depending on policy. 
-                // Actually we should insert into 'servers' first.
-                // But RLS policy says "Users can create servers", so we can insert directly.
-                // Wait, standard pattern is insert into servers, then insert into server_members.
-                // Let's rely on valid RLS.
-                .insert([
-                    // Wait, this is server_members. I need to insert into 'servers'
-                ]) as any;
+
 
             // Correct approach:
             const { data: newServer, error } = await supabase

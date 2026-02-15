@@ -20,7 +20,7 @@ interface ServerState {
   removeChannel: (channelId: string) => void;
 }
 
-export const useServerStore = create<ServerState>((set, get) => ({
+export const useServerStore = create<ServerState>((set) => ({
   // Initial state
   servers: {},
   channels: {},

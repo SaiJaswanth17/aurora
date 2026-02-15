@@ -64,25 +64,59 @@ This architecture allows a **single public URL** (`https://your-ngrok-url.ngrok-
 
 ### Environment Setup
 
-Create the following environment files in the respective directories:
+⚠️ **Security Warning**: Never commit files containing real credentials (`.env`, `.env.local`, `apps/server/.env`) to version control. These files are gitignored for your protection.
 
-**`apps/web/.env.local`**
+Aurora uses environment variables for configuration. Follow these steps to set up your environment:
+
+#### 1. Copy Example Files
+
+The repository includes `.env.example` template files. Copy them to create your local environment files:
+
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+# Copy root environment example
+cp .env.example .env
 
-# Remote Access Config
-NEXT_PUBLIC_APP_URL=https://your-ngrok-url.ngrok-free.app
-NEXT_PUBLIC_WS_URL=/api/socket
-WS_PORT=3002
+# Copy server environment example
+cp apps/server/.env.example apps/server/.env
+
+# Copy web environment example  
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-**`apps/server/.env`**
+#### 2. Configure Credentials
+
+Open each `.env` file and replace the placeholder values with your actual credentials:
+
+**Root `.env`** (or use individual app .env files):
 ```bash
+# Get these from your Supabase project: Settings → API
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here  # ⚠️ SENSITIVE
+
+# WebSocket configuration (default values work for local development)
 WS_PORT=3002
+WS_HOST=localhost
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_WS_URL=ws://localhost:3002
+
+# Generate a secure secret (32+ characters):
+# Use: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+JWT_SECRET=your_secure_jwt_secret_min_32_chars  # ⚠️ SENSITIVE
+
+# File upload limits (defaults shown)
+MAX_FILE_SIZE=5368709120
+UPLOAD_CHUNK_SIZE=5242880
+
+# Google AI API Key (for Aurora AI assistant)
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key  # ⚠️ SENSITIVE
 ```
+
+**Important Notes:**
+- Variables marked with ⚠️ are sensitive and should never be shared or committed
+- The `NEXT_PUBLIC_*` variables are safe to expose in the browser
+- Port 3002 is standardized for the WebSocket server
+- For remote access via Ngrok, update `NEXT_PUBLIC_APP_URL` to your Ngrok URL
 
 ### Running Locally
 

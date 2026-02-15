@@ -20,6 +20,7 @@ export function RegisterForm({ onToggleMode }: RegisterFormProps) {
       const timer = setTimeout(() => setCooldownRemaining(c => c - 1), 1000);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [cooldownRemaining]);
 
   // Redirect to channels when authenticated

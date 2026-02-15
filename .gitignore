@@ -2,9 +2,18 @@ node_modules/
 dist/
 .next/
 *.log
+# Environment files with credentials
 .env
-.env.example
 .env.local
+*.env.local
+apps/server/.env
+apps/web/.env
+apps/web/.env.local
+
+# Keep example files
+!.env.example
+!apps/server/.env.example
+!apps/web/.env.example
 .DS_Store
 *.local
 .turbo/

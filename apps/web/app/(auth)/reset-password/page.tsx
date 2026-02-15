@@ -1,13 +1,12 @@
 'use client';
 
 import { useState, useEffect, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { validatePassword } from '@/lib/auth/auth-utils';
 
 export default function ResetPasswordPage() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [formData, setFormData] = useState({
         password: '',
         confirmPassword: '',

@@ -84,7 +84,7 @@ export function MemberSidebar() {
   }, [onPresenceUpdate, supabase]);
 
   const onlineMembers = members.filter(m => m.status !== 'offline');
-  const offlineMembers = members.filter(m => m.status === 'offline');
+
 
   const getStatusColor = (status: Member['status']) => {
     switch (status) {

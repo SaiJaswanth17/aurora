@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/lib/auth/auth-context';
+
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useDebounce } from '@/lib/hooks/use-debounce'; // Assuming this exists or I will just use setTimeout
+// import { useDebounce } from '@/lib/hooks/use-debounce'; // Assuming this exists or I will just use setTimeout
 
 // Simple debounce hook if not exists
 function useDebounceValue<T>(value: T, delay: number): T {

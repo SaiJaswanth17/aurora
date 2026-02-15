@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { WS_EVENTS, WS_CONFIG, WebSocketEvent } from '@aurora/shared';
-import { useAuth } from '@/lib/auth/auth-context';
+import { WS_CONFIG } from '@aurora/shared';
 
 interface WebSocketClientOptions {
   url: string;
@@ -16,7 +14,7 @@ export class WebSocketClient {
   private isDestroyed = false;
   private listeners: Map<string, ((data: unknown) => void)[]> = new Map();
 
-  constructor(private options: WebSocketClientOptions) {}
+  constructor(private options: WebSocketClientOptions) { }
 
   async connect(): Promise<void> {
     if (this.isConnecting || this.isDestroyed) return;
@@ -53,7 +51,7 @@ export class WebSocketClient {
     }
   }
 
-  private handleOpen(event: Event): void {
+  private handleOpen(_event: Event): void {
     console.log('🔌 WebSocket connected');
     this.isConnecting = false;
     this.reconnectAttempts = 0;

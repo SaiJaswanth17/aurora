@@ -23,7 +23,6 @@ export function MainContent() {
   const supabase = createClient();
   const { user } = useAuth();
   const [showOptions, setShowOptions] = useState(false);
-  const useStore = useChatStore; // Access for clearing
 
   useEffect(() => {
     async function fetchDmDetails() {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { useWebSocket } from './websocket-context';
 import { WS_EVENTS, Message, DirectMessage, UserStatus } from '@aurora/shared';
 import { encryptMessage, decryptMessage } from '../crypto/encryption';
@@ -70,7 +71,7 @@ export function useChatWebSocket() {
 
   // Listen to new messages
   const onNewMessage = useCallback(
-    (callback: (message: Message) => void) => {
+    (callback: (message: Message) => Promise<void> | void) => {
       const wrappedCallback = async (data: unknown) => {
         const message = data as Message;
         const decryptedContent = await decryptMessage(message.content, E2EE_SECRET);
@@ -83,7 +84,7 @@ export function useChatWebSocket() {
 
   // Listen to new direct messages
   const onNewDirectMessage = useCallback(
-    (callback: (message: DirectMessage) => void) => {
+    (callback: (message: DirectMessage) => Promise<void> | void) => {
       const wrappedCallback = async (data: unknown) => {
         const message = data as DirectMessage;
         const decryptedContent = await decryptMessage(message.content, E2EE_SECRET);

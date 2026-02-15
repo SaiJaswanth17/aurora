@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageBubble } from './message-bubble';
 import { useChannelMessages, useTypingUsers, useActiveChannel, useChatStore } from '@/stores/chat-store';
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
-import { Message } from '@aurora/shared';
+
 import { useAuth } from '@/lib/auth/auth-context';
 import { decryptMessage } from '@/lib/crypto/encryption';
 import { normalizeMessage } from '@/lib/message-utils';

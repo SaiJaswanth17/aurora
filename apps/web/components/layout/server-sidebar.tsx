@@ -9,18 +9,11 @@ import { SearchModal } from '@/components/modals/search-modal';
 import { UserSettingsModal } from '@/components/modals/user-settings-modal';
 
 export function ServerSidebar() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { activeServer, setActiveServer } = useServerStore();
   const [showCreateServer, setShowCreateServer] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
-
-
-  const handleSignOut = async () => {
-    if (confirm('Are you sure you want to sign out?')) {
-      await signOut();
-    }
-  };
 
   return (
     <>

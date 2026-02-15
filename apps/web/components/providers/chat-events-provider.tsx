@@ -33,8 +33,8 @@ export function ChatEventsProvider({ children }: { children: React.ReactNode }) 
         });
 
         // Listen for typing indicators
-        const unsubscribeTyping = onUserTyping(({ channelId, userId, username }) => {
-            setTyping(channelId, userId, username);
+        const unsubscribeTyping = onUserTyping(({ channelId, userId }) => {
+            setTyping(channelId, userId);
 
             // Clear typing after 5 seconds
             setTimeout(() => {
