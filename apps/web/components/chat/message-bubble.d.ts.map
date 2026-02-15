@@ -1,0 +1,1 @@
+{"version":3,"file":"message-bubble.d.ts","sourceRoot":"","sources":["message-bubble.tsx"],"names":[],"mappings":"AAEA,OAAO,EAAE,OAAO,EAAE,MAAM,gBAAgB,CAAC;AAGzC,UAAU,kBAAkB;IAC1B,OAAO,EAAE,OAAO,CAAC;IACjB,YAAY,CAAC,EAAE,OAAO,CAAC;CACxB;AAED,wBAAgB,aAAa,CAAC,EAAE,OAAO,EAAE,YAAY,EAAE,EAAE,kBAAkB,+BAqK1E"}

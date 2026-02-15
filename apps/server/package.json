@@ -1,0 +1,26 @@
+{
+  "name": "@aurora/server",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "bun run dist/index.js",
+    "dev": "bun run --watch src/index.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@aurora/shared": "workspace:*",
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^17.3.1",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/jsonwebtoken": "^9.0.5",
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}
