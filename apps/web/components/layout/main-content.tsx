@@ -15,6 +15,7 @@ interface ConversationDetails {
   name: string;
   avatarUrl?: string;
   type: 'dm';
+  status?: 'online' | 'offline' | 'away' | 'idle';
 }
 
 export function MainContent() {
@@ -40,7 +41,8 @@ export function MainContent() {
                 user_id,
                 profiles (
                   username,
-                  avatar_url
+                  avatar_url,
+                  status
                 )
               )
             `)
@@ -56,6 +58,7 @@ export function MainContent() {
             id: data.id,
             name: otherMember?.profiles?.username || 'Unknown User',
             avatarUrl: otherMember?.profiles?.avatar_url,
+            status: otherMember?.profiles?.status || 'offline',
             type: 'dm'
           });
         } catch (err) {
@@ -68,6 +71,55 @@ export function MainContent() {
 
     fetchDmDetails();
   }, [activeChannelId, activeChannel, supabase, user?.id]);
+
+  // Subscribe to real-time status updates for DM partner
+  useEffect(() => {
+    if (!dmDetails || !activeChannelId) return;
+
+    let cleanup: (() => void) | undefined;
+
+    // Get the other user's ID from the conversation
+    const fetchAndSubscribe = async () => {
+      const { data } = await supabase
+        .from('conversation_members')
+        .select('user_id')
+        .eq('conversation_id', activeChannelId)
+        .neq('user_id', user?.id || '');
+
+      if (data && data.length > 0) {
+        const otherUserId = data[0].user_id;
+
+        // Subscribe to profile changes
+        const channel = supabase
+          .channel(`profile-${otherUserId}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'profiles',
+              filter: `id=eq.${otherUserId}`
+            },
+            (payload) => {
+              if (payload.new && 'status' in payload.new) {
+                setDmDetails(prev => prev ? { ...prev, status: payload.new.status } : null);
+              }
+            }
+          )
+          .subscribe();
+
+        cleanup = () => {
+          supabase.removeChannel(channel);
+        };
+      }
+    };
+
+    fetchAndSubscribe();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
+  }, [dmDetails?.id, activeChannelId, supabase, user?.id]);
 
   // Join/leave conversations and channels when active channel changes
   useEffect(() => {
@@ -112,7 +164,12 @@ export function MainContent() {
             {isDm && dmDetails?.avatarUrl ? (
               <div className="relative">
                 <img src={dmDetails.avatarUrl} alt={channelName} className="w-8 h-8 rounded-full object-cover" />
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-discord-background"></div>
+                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-discord-background ${
+                  dmDetails.status === 'online' ? 'bg-green-500' :
+                  dmDetails.status === 'idle' ? 'bg-yellow-500' :
+                  dmDetails.status === 'away' ? 'bg-orange-500' :
+                  'bg-gray-500'
+                }`}></div>
               </div>
             ) : (
               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold overflow-hidden ${isDm ? 'bg-discord-accent text-white' : 'bg-discord-background-secondary text-discord-text-muted'}`}>

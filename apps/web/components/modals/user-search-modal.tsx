@@ -44,8 +44,11 @@ export function UserSearchModal({ isOpen, onClose, onSelectUser }: UserSearchMod
                 <div className="px-6 py-4 bg-whatsapp-header-bg border-b border-whatsapp-border flex justify-between items-center">
                     <h2 className="text-xl font-semibold text-whatsapp-text">New Chat</h2>
                     <button
+                        type="button"
                         onClick={onClose}
                         className="text-whatsapp-text-muted hover:text-whatsapp-teal transition-colors"
+                        aria-label="Close dialog"
+                        title="Close"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
