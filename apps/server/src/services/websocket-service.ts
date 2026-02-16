@@ -172,14 +172,20 @@ export class WebSocketService {
     // --- Private Handlers ---
 
     private async handleAuth(ws: ServerWebSocket<WebSocketData>, payload: any) {
+        console.log('🔐 Auth attempt received, payload:', payload);
+        
         const parsed = authSchema.safeParse(payload);
         if (!parsed.success) {
+            console.error('❌ Auth validation failed:', parsed.error);
             ws.send(JSON.stringify({ type: WS_EVENTS.AUTH_ERROR, payload: { message: 'Invalid payload' } }));
             return;
         }
 
+        console.log('✅ Auth payload validated, token length:', parsed.data.token?.length);
+
         try {
             const user = await this.authLayer.validateToken(parsed.data.token);
+            console.log('✅ User authenticated:', user.id, user.username);
 
             ws.data.user = user;
             ws.data.userId = user.id;
@@ -189,7 +195,9 @@ export class WebSocketService {
             await this.presenceManager.updateUserStatus(user.id, 'online');
 
             ws.send(JSON.stringify({ type: WS_EVENTS.AUTH_SUCCESS, payload: { user } }));
+            console.log('✅ Auth success sent to client');
         } catch (e: any) {
+            console.error('❌ Auth error:', e.message, e.code);
             ws.send(JSON.stringify({
                 type: WS_EVENTS.AUTH_ERROR,
                 payload: { message: e.message || 'Authentication failed', code: e.code }

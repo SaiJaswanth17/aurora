@@ -31,6 +31,11 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
 
     let wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3002';
 
+    // Ensure /ws path is appended
+    if (!wsUrl.endsWith('/ws')) {
+      wsUrl = wsUrl.replace(/\/$/, '') + '/ws';
+    }
+
     // Handle relative URLs for proxying (e.g. /api/socket)
     if (wsUrl.startsWith('/')) {
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
