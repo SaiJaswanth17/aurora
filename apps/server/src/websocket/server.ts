@@ -7,6 +7,7 @@ import { PresenceManager } from '../services/presence-manager';
 import { RateLimiter } from '../services/rate-limiter';
 import { WebSocketService } from '../services/websocket-service';
 import { MessageHandler } from '../handlers/message-handler';
+import { CallHandler } from '../handlers/call-handler';
 import { WebSocketData } from '../types';
 
 // Fix for Timer type not being globally visible in Bun/TS setup
@@ -41,6 +42,7 @@ export class WebSocketServer {
     const authLayer = new AuthenticationLayer(this.supabase);
     const presenceManager = new PresenceManager(connectionManager, this.supabase);
     const messageHandler = new MessageHandler(this.supabase, connectionManager);
+    const callHandler = new CallHandler(connectionManager);
 
     this.wsService = new WebSocketService(
       authLayer,
@@ -48,6 +50,7 @@ export class WebSocketServer {
       presenceManager,
       rateLimiter,
       messageHandler,
+      callHandler,
       this.supabase
     );
 

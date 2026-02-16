@@ -8,6 +8,7 @@ import { useChannelById } from '@/stores/server-store';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
+import { useCall } from '@/components/providers/call-provider';
 
 
 interface ConversationDetails {
@@ -16,6 +17,7 @@ interface ConversationDetails {
   avatarUrl?: string;
   type: 'dm';
   status?: 'online' | 'offline' | 'away' | 'idle';
+  targetUserId: string;
 }
 
 export function MainContent() {
@@ -26,6 +28,7 @@ export function MainContent() {
   const { user } = useAuth();
   const [showOptions, setShowOptions] = useState(false);
   const { joinConversation, leaveConversation, joinChannel, leaveChannel } = useChatWebSocket();
+  const { initiateCall } = useCall();
 
   useEffect(() => {
     async function fetchDmDetails() {
@@ -59,7 +62,8 @@ export function MainContent() {
             name: otherMember?.profiles?.username || 'Unknown User',
             avatarUrl: otherMember?.profiles?.avatar_url,
             status: otherMember?.profiles?.status || 'offline',
-            type: 'dm'
+            type: 'dm',
+            targetUserId: otherMember?.user_id
           });
         } catch (err) {
           console.error('Failed to fetch DM details:', err);
@@ -138,9 +142,9 @@ export function MainContent() {
         leaveChannel(activeChannelId);
       };
     }
-    
+
     // Return empty cleanup function if neither condition is met
-    return () => {};
+    return () => { };
   }, [activeChannelId, dmDetails, activeChannel, joinConversation, leaveConversation, joinChannel, leaveChannel]);
 
   // Click outside to close options
@@ -155,6 +159,8 @@ export function MainContent() {
   const channelName = activeChannel ? activeChannel.name : (dmDetails?.name || '');
   const isDm = !!dmDetails;
 
+
+
   return (
     <div className="h-full flex flex-col bg-discord-background">
       {/* Channel Header */}
@@ -164,12 +170,11 @@ export function MainContent() {
             {isDm && dmDetails?.avatarUrl ? (
               <div className="relative">
                 <img src={dmDetails.avatarUrl} alt={channelName} className="w-8 h-8 rounded-full object-cover" />
-                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-discord-background ${
-                  dmDetails.status === 'online' ? 'bg-green-500' :
+                <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-discord-background ${dmDetails.status === 'online' ? 'bg-green-500' :
                   dmDetails.status === 'idle' ? 'bg-yellow-500' :
-                  dmDetails.status === 'away' ? 'bg-orange-500' :
-                  'bg-gray-500'
-                }`}></div>
+                    dmDetails.status === 'away' ? 'bg-orange-500' :
+                      'bg-gray-500'
+                  }`}></div>
               </div>
             ) : (
               <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold overflow-hidden ${isDm ? 'bg-discord-accent text-white' : 'bg-discord-background-secondary text-discord-text-muted'}`}>
@@ -191,22 +196,50 @@ export function MainContent() {
 
         <div className="ml-auto flex items-center space-x-5 text-discord-interactive">
           {/* Voice Call */}
-          <button className="hover:text-discord-text" title="Start Voice Call">
+          <button
+            className="hover:text-discord-text"
+            title="Start Voice Call"
+            onClick={async () => {
+              if (isDm && dmDetails?.targetUserId) {
+                await initiateCall(dmDetails.targetUserId, dmDetails.name, dmDetails.avatarUrl, false);
+              } else {
+                alert("Voice calls are only available in DMs.");
+              }
+            }}
+          >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.26-.27.36-.66.25-1.01-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3.3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" /></svg>
           </button>
 
           {/* Video Call */}
-          <button className="hover:text-discord-text" title="Start Video Call">
+          <button
+            className="hover:text-discord-text"
+            title="Start Video Call"
+            onClick={async () => {
+              if (isDm && dmDetails?.targetUserId) {
+                await initiateCall(dmDetails.targetUserId, dmDetails.name, dmDetails.avatarUrl, true);
+              } else {
+                alert("Video calls are only available in DMs.");
+              }
+            }}
+          >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" /></svg>
           </button>
 
           {/* Pinned Messages */}
-          <button className="hover:text-discord-text" title="Pinned Messages">
+          <button
+            className="hover:text-discord-text"
+            title="Pinned Messages"
+            onClick={() => alert('Pinned Messages feature coming soon!')}
+          >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 9V4l1 1c.55 0 1-.45 1-1V2H6v2c0 .55.45 1 1 1l1-1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z" /></svg>
           </button>
 
           {/* Add Friends to DM (if DM) */}
-          <button className="hover:text-discord-text" title="Add Friends to DM">
+          <button
+            className="hover:text-discord-text"
+            title="Add Friends to DM"
+            onClick={() => alert('Add to Group DM feature coming soon!')}
+          >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg>
           </button>
 
@@ -254,9 +287,9 @@ export function MainContent() {
                 <div className="h-[1px] bg-discord-background-modifier-accent my-1 mx-2"></div>
                 <button
                   className="w-full text-left px-4 py-2 hover:bg-discord-red hover:text-white text-discord-red text-sm transition-colors"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to clear the chat? This is a local action for now.')) {
-                      useChatStore.getState().clearChannel(activeChannelId || '');
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to clear the chat? This will permanently delete all messages for you.')) {
+                      await useChatStore.getState().clearMessages(activeChannelId || '', isDm ? 'dm' : 'channel');
                     }
                     setShowOptions(false);
                   }}
@@ -273,7 +306,7 @@ export function MainContent() {
       <div className="flex-1 overflow-hidden flex flex-col relative">
         {activeChannelId ? (
           <>
-            <MessageList channelId={activeChannelId} />
+            <MessageList channelId={activeChannelId} isDm={isDm} />
             <MessageInput isDm={isDm} />
           </>
         ) : (

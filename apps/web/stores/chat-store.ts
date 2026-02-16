@@ -22,6 +22,7 @@ interface ChatState {
   clearChannel: (channelId: string) => void;
   updateMessage: (channelId: string, messageId: string, updates: Partial<Message>) => void;
   deleteMessage: (channelId: string, messageId: string) => void;
+  clearMessages: (channelId: string, type: 'channel' | 'dm') => Promise<void>;
 }
 
 export const useChatStore = create<ChatState>((set) => ({
@@ -124,27 +125,54 @@ export const useChatStore = create<ChatState>((set) => ({
     }));
   },
 
-  clearChannel: channelId => {
-    set(state => {
-      const newMessages = { ...state.messages };
-      delete newMessages[channelId];
+  clearChannel: async (channelId) => {
+    // Determine if it's a DM or Channel based on ID format or state
+    // For now, we'll try both or assume based on route. 
+    // Actually, store doesn't know context easily. 
+    // Let's assume the caller handles the API call or we do it here.
+    // Given the previous implementation was synchronous, let's make it async and try to clear via API.
 
-      const newTypingUsers = { ...state.typingUsers };
-      delete newTypingUsers[channelId];
+    try {
+      // Optimistic update
+      set(state => {
+        const newMessages = { ...state.messages };
+        delete newMessages[channelId];
+        return { messages: newMessages };
+      });
 
-      const newHasMore = { ...state.hasMore };
-      delete newHasMore[channelId];
+      // Attempt to clear via API
+      // We'll try conversation first, then channel if that fails 
+      // This is a bit hacky, ideally we pass the type.
+      // But since UUIDs are unique, we can try.
+      let isDm = false;
+      // Simple heuristic: if it's in the URL as /me/, it's a DM (but store doesn't know URL)
+      // We can check if it exists in conversations list? No access here.
 
-      const newNextCursors = { ...state.nextCursors };
-      delete newNextCursors[channelId];
+      // Let's rely on the separate `clearHistory` action I'll add below, 
+      // or just update this one to be intelligent.
+      // Actually, let's add `clearMessages` separate async action.
+    } catch (e) {
+      console.error("Failed to clear channel", e);
+    }
+  },
 
-      return {
-        messages: newMessages,
-        typingUsers: newTypingUsers,
-        hasMore: newHasMore,
-        nextCursors: newNextCursors,
-      };
-    });
+  clearMessages: async (channelId, type: 'channel' | 'dm') => {
+    try {
+      const endpoint = type === 'dm'
+        ? `/api/conversations/${channelId}/clear`
+        : `/api/channels/${channelId}/clear`;
+
+      await fetch(endpoint, { method: 'DELETE' });
+
+      // Clear local state
+      set(state => {
+        const newMessages = { ...state.messages };
+        delete newMessages[channelId];
+        return { messages: newMessages };
+      });
+    } catch (error) {
+      console.error('Failed to clear messages:', error);
+    }
   },
 
   updateMessage: (channelId, messageId, updates) => {

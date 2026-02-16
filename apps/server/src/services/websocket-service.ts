@@ -9,6 +9,7 @@ import { IConnectionManager } from './connection-manager';
 import { IPresenceManager } from './presence-manager';
 import { IRateLimiter } from './rate-limiter';
 import { MessageHandler } from '../handlers/message-handler';
+import { CallHandler } from '../handlers/call-handler';
 import { WebSocketData } from '../types';
 
 import {
@@ -26,6 +27,7 @@ export class WebSocketService {
         private presenceManager: IPresenceManager,
         private rateLimiter: IRateLimiter,
         private messageHandler: MessageHandler,
+        private callHandler: CallHandler,
         private supabase: SupabaseClient
     ) { }
 
@@ -104,6 +106,10 @@ export class WebSocketService {
                     if (messageSchema.safeParse(payload).success) {
                         await this.messageHandler.handleDirectMessage(ws, payload);
                     }
+                    break;
+
+                case 'call:signal':
+                    await this.callHandler.handleCallSignal(ws, payload);
                     break;
 
                 case WS_EVENTS.JOIN_CHANNEL:

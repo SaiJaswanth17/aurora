@@ -25,7 +25,7 @@ export function ChannelSidebar() {
 
   useEffect(() => {
     async function fetchConversations() {
-      if (activeServer) return;
+      if (activeServer || !user) return; // Ensure user is loaded
       setIsConvoLoading(true);
       try {
         const { data, error } = await supabase
@@ -48,7 +48,7 @@ export function ChannelSidebar() {
 
         const formatted = data?.map(convo => {
           const members = convo.conversation_members as any[];
-          const otherMember = members.find(m => m.user_id !== user?.id) || members[0];
+          const otherMember = members.find(m => m.user_id !== user.id) || members[0];
           return {
             id: convo.id,
             userId: otherMember?.user_id || 'unknown',
@@ -58,12 +58,14 @@ export function ChannelSidebar() {
           };
         }) || [];
 
-        // Deduplicate conversations
-        const uniqueConversations = formatted.filter((convo, index, self) =>
-          index === self.findIndex((t) => (
-            t.username === convo.username
-          ))
-        );
+        // Deduplicate and remove self-DMs if any
+        const uniqueConversations = formatted
+          .filter(c => c.userId !== user.id) // Filter out self
+          .filter((convo, index, self) =>
+            index === self.findIndex((t) => (
+              t.username === convo.username
+            ))
+          );
 
         setConversations(uniqueConversations);
       } catch (err) {

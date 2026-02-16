@@ -2,6 +2,7 @@
 
 import { Message } from '@aurora/shared';
 import { formatMessageTimestamp } from '@/lib/auth/auth-utils';
+import { CustomAudioPlayer } from '../ui/custom-audio-player';
 
 interface MessageBubbleProps {
   message: Message;
@@ -88,12 +89,7 @@ export function MessageBubble({ message, isOwnMessage: isOwn }: MessageBubblePro
 
               if (isAudio) {
                 return (
-                  <div key={index} className="inline-flex items-center bg-discord-background-secondary rounded-md p-2 border border-discord-background-tertiary mt-1 min-w-[200px] max-w-[300px]">
-                    <div className="bg-discord-background-tertiary p-2 rounded-full mr-3 flex-shrink-0">
-                      <svg className="w-5 h-5 text-discord-text" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" /></svg>
-                    </div>
-                    <audio controls src={url} className="h-8 w-full min-w-[150px]" />
-                  </div>
+                  <CustomAudioPlayer key={index} src={url} />
                 );
               }
 

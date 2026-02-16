@@ -10,9 +10,10 @@ import { normalizeMessage } from '@/lib/message-utils';
 
 interface MessageListProps {
   channelId: string;
+  isDm?: boolean;
 }
 
-export function MessageList({ channelId }: MessageListProps) {
+export function MessageList({ channelId, isDm }: MessageListProps) {
   // Real chat hooks
   const messages = useChannelMessages(channelId);
   const realTypingUsers = useTypingUsers(channelId);
@@ -88,7 +89,7 @@ export function MessageList({ channelId }: MessageListProps) {
     const loadMessages = async () => {
       setLoading(true);
       try {
-        const url = channelId.includes('-') && channelId.length > 20
+        const url = isDm
           ? `/api/messages?conversationId=${channelId}`
           : `/api/messages?channelId=${channelId}`;
 
