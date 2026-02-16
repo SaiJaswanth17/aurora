@@ -13,7 +13,7 @@ async function main() {
     process.exit(1);
   }
 
-  const preferredPort = parseInt(process.env.WS_PORT || '3001');
+  const preferredPort = parseInt(process.env.WS_PORT || '3002');
   const port = await findAvailablePort(PORT_RANGES.WEBSOCKET, preferredPort);
 
   const server = new WebSocketServer();

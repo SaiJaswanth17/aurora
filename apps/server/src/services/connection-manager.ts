@@ -24,9 +24,9 @@ export interface IConnectionManager {
 
     getConnectionsInScope(scope: { channelId?: ChannelId, conversationId?: ConversationId, userIds?: UserId[] }): ConnectionId[];
 
-    // Access methods for testing/sending
     getConnection(connectionId: ConnectionId): WebSocketConnection | undefined;
     sendToConnection(connectionId: ConnectionId, message: any): void;
+    broadcastToAll(message: any): void;
 }
 
 export class ConnectionManager implements IConnectionManager {
@@ -249,6 +249,13 @@ export class ConnectionManager implements IConnectionManager {
         const conn = this.activeConnections.get(connectionId);
         if (conn) {
             const data = typeof message === 'string' ? message : JSON.stringify(message);
+            conn.send(data);
+        }
+    }
+
+    broadcastToAll(message: any): void {
+        const data = typeof message === 'string' ? message : JSON.stringify(message);
+        for (const conn of this.activeConnections.values()) {
             conn.send(data);
         }
     }

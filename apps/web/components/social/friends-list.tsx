@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
+import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
 
 type FriendStatus = 'online' | 'all' | 'pending' | 'blocked' | 'discover';
 
@@ -52,6 +53,20 @@ export function FriendsList() {
         fetchFriends();
     }, [user, supabase]);
 
+    // Listen for presence updates
+    const { onPresenceUpdate } = useChatWebSocket();
+
+    useEffect(() => {
+        const unsubscribe = onPresenceUpdate(({ userId, status }) => {
+            setFriends(prevFriends =>
+                prevFriends.map(friend =>
+                    friend.id === userId ? { ...friend, status } : friend
+                )
+            );
+        });
+        return unsubscribe;
+    }, [onPresenceUpdate]);
+
     const handleMessage = async (friendId: string) => {
         try {
             const res = await fetch('/api/conversations', {
@@ -84,50 +99,7 @@ export function FriendsList() {
 
     return (
         <div className="flex-1 flex flex-col bg-discord-background">
-            <div className="h-12 px-4 flex items-center border-b border-discord-background-tertiary">
-                <div className="flex items-center space-x-4">
-                    <div className="flex items-center text-discord-text font-bold mr-2">
-                        <svg className="w-6 h-6 mr-2 text-discord-interactive" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                        </svg>
-                        Friends
-                    </div>
-                    <div className="h-6 w-[1px] bg-discord-background-tertiary mx-2" />
-                    <button
-                        onClick={() => setActiveTab('online')}
-                        className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${activeTab === 'online' ? 'bg-discord-background-tertiary text-discord-text' : 'text-discord-text-muted hover:text-discord-text hover:bg-discord-background-tertiary'}`}
-                    >
-                        Online
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('all')}
-                        className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${activeTab === 'all' ? 'bg-discord-background-tertiary text-discord-text' : 'text-discord-text-muted hover:text-discord-text hover:bg-discord-background-tertiary'}`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('pending')}
-                        className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${activeTab === 'pending' ? 'bg-discord-background-tertiary text-discord-text' : 'text-discord-text-muted hover:text-discord-text hover:bg-discord-background-tertiary'}`}
-                    >
-                        Pending
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('blocked')}
-                        className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${activeTab === 'blocked' ? 'bg-discord-background-tertiary text-discord-text' : 'text-discord-text-muted hover:text-discord-text hover:bg-discord-background-tertiary'}`}
-                    >
-                        Blocked
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('discover')}
-                        className={`px-2 py-0.5 rounded text-sm font-medium transition-colors ${activeTab === 'discover' ? 'bg-discord-background-tertiary text-discord-text' : 'text-discord-text-muted hover:text-discord-interactive hover:bg-discord-background-tertiary'}`}
-                    >
-                        Discover
-                    </button>
-                    <button className="px-2 py-0.5 rounded text-sm font-medium bg-discord-green text-white hover:bg-discord-green-hover transition-colors">
-                        Add Friend
-                    </button>
-                </div>
-            </div>
+
 
             <div className="flex-1 overflow-y-auto p-4">
                 <div className="text-xs font-semibold text-discord-text-muted uppercase tracking-wider mb-4">

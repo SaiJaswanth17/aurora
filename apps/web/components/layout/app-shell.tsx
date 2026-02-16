@@ -10,6 +10,7 @@ import { UserSearchModal } from '../modals/user-search-modal';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
+import { useServerStore } from '@/stores/server-store';
 
 export function AppShell({ children }: { children?: React.ReactNode }) {
   const { isAuthenticated, isLoading } = useRequireAuth();
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
   const router = useRouter();
   const { updatePresence } = useChatWebSocket();
   const supabase = createClient();
+  const activeServer = useServerStore((state) => state.activeServer);
 
   // Update presence on mount/auth
   useEffect(() => {
@@ -99,9 +101,14 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       </div>
 
       {/* Member Sidebar - 240px wide, hidden on smaller screens */}
-      <div className="hidden lg:block w-60 bg-discord-secondary flex-shrink-0">
-        <MemberSidebar />
-      </div>
+      {/* Only show member sidebar if we are in a server (not in DM/Me) */}
+      {/* Member Sidebar - 240px wide, hidden on smaller screens */}
+      {/* Only show member sidebar if we are in a server (not in DM/Me) */}
+      {!!activeServer && (
+        <div className="hidden lg:block w-60 bg-discord-secondary flex-shrink-0">
+          <MemberSidebar />
+        </div>
+      )}
 
       <UserSearchModal
         isOpen={isSearchOpen}

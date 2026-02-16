@@ -8,6 +8,7 @@ import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useChatStore } from '@/stores/chat-store';
 import { useChannels } from '@/hooks/use-servers';
+import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
 
 export function ChannelSidebar() {
   const { activeServer, activeChannel: serverActiveChannel, setActiveChannel: setServerActiveChannel, servers } = useServerStore();
@@ -18,6 +19,7 @@ export function ChannelSidebar() {
   const [conversations, setConversations] = useState<any[]>([]);
   const [isConvoLoading, setIsConvoLoading] = useState(false);
   const supabase = createClient();
+  const { onPresenceUpdate } = useChatWebSocket();
 
   const currentServer = activeServer ? servers[activeServer] : null;
 
@@ -35,7 +37,8 @@ export function ChannelSidebar() {
               user_id,
               profiles (
                 username,
-                avatar_url
+                avatar_url,
+                status
               )
             )
           `)
@@ -48,12 +51,21 @@ export function ChannelSidebar() {
           const otherMember = members.find(m => m.user_id !== user?.id) || members[0];
           return {
             id: convo.id,
+            userId: otherMember?.user_id || 'unknown',
             username: otherMember?.profiles?.username || 'Unknown User',
-            avatarUrl: otherMember?.profiles?.avatar_url
+            avatarUrl: otherMember?.profiles?.avatar_url,
+            status: otherMember?.profiles?.status || 'offline'
           };
         }) || [];
 
-        setConversations(formatted);
+        // Deduplicate conversations
+        const uniqueConversations = formatted.filter((convo, index, self) =>
+          index === self.findIndex((t) => (
+            t.username === convo.username
+          ))
+        );
+
+        setConversations(uniqueConversations);
       } catch (err) {
         console.error('Failed to fetch conversations:', err);
       } finally {
@@ -63,6 +75,19 @@ export function ChannelSidebar() {
 
     fetchConversations();
   }, [activeServer, user?.id, supabase]);
+
+  // Listen for presence updates
+  useEffect(() => {
+    const unsubscribe = onPresenceUpdate(({ userId, status }) => {
+      setConversations(prev => prev.map(convo => {
+        if (convo.userId === userId) {
+          return { ...convo, status };
+        }
+        return convo;
+      }));
+    });
+    return unsubscribe;
+  }, [onPresenceUpdate]);
 
   const handleFriendsClick = () => {
     setChatActiveChannel(null);
@@ -131,11 +156,16 @@ export function ChannelSidebar() {
                         }
                       `}
                     >
-                      <div className="w-8 h-8 rounded-full bg-discord-accent flex items-center justify-center text-white font-bold mr-3 overflow-hidden">
-                        {convo.avatarUrl ? (
-                          <img src={convo.avatarUrl} alt={convo.username} className="w-full h-full object-cover" />
-                        ) : (
-                          convo.username?.replace(/[^a-zA-Z0-9]/g, '')?.[0]?.toUpperCase() || '?'
+                      <div className="relative mr-3">
+                        <div className="w-8 h-8 rounded-full bg-discord-accent flex items-center justify-center text-white font-bold overflow-hidden">
+                          {convo.avatarUrl ? (
+                            <img src={convo.avatarUrl} alt={convo.username} className="w-full h-full object-cover" />
+                          ) : (
+                            convo.username?.replace(/[^a-zA-Z0-9]/g, '')?.[0]?.toUpperCase() || '?'
+                          )}
+                        </div>
+                        {convo.status === 'online' && (
+                          <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 border-2 border-discord-secondary" />
                         )}
                       </div>
                       <span className="text-sm font-medium truncate">{convo.username}</span>

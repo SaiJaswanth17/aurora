@@ -20,12 +20,6 @@ export default function DMChannelPage() {
     }, [channelId, setActiveChannel]);
 
     return (
-        <AppShell>
-            {/* 
-          MainContent (inside AppShell) will automatically render 
-          the MessageList because setActiveChannel was called.
-      */}
-            <div className="flex-1" />
-        </AppShell>
+        <AppShell />
     );
 }

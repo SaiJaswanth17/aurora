@@ -164,6 +164,7 @@ export class WebSocketService {
             if (active.length === 0) {
                 await this.presenceManager.updateUserStatus(userId, 'offline');
                 console.log(`User ${userId} went offline`);
+                this.broadcastPresence(userId, 'offline');
             }
         }
         console.log(`🔌 Connection closed: ${connectionId}`);
@@ -173,7 +174,7 @@ export class WebSocketService {
 
     private async handleAuth(ws: ServerWebSocket<WebSocketData>, payload: any) {
         console.log('🔐 Auth attempt received, payload:', payload);
-        
+
         const parsed = authSchema.safeParse(payload);
         if (!parsed.success) {
             console.error('❌ Auth validation failed:', parsed.error);
@@ -193,6 +194,7 @@ export class WebSocketService {
 
             this.connectionManager.setAuthenticatedUser(ws.data.connectionId, user.id);
             await this.presenceManager.updateUserStatus(user.id, 'online');
+            this.broadcastPresence(user.id, 'online');
 
             ws.send(JSON.stringify({ type: WS_EVENTS.AUTH_SUCCESS, payload: { user } }));
             console.log('✅ Auth success sent to client');
@@ -203,6 +205,14 @@ export class WebSocketService {
                 payload: { message: e.message || 'Authentication failed', code: e.code }
             }));
         }
+    }
+
+    private broadcastPresence(userId: string, status: string) {
+        // Broadcast to all connected users
+        this.connectionManager.broadcastToAll({
+            type: WS_EVENTS.PRESENCE_UPDATE_BROADCAST,
+            payload: { userId, status }
+        });
     }
 
     private async handleJoinChannel(ws: ServerWebSocket<WebSocketData>, payload: { channelId?: string }) {

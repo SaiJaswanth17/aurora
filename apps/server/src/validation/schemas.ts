@@ -11,12 +11,15 @@ export const authSchema = z.object({
 });
 
 export const messageSchema = z.object({
-    content: z.string().min(1).max(5000), // Reasonable limit
+    content: z.string().max(5000).optional(),
+    attachments: z.array(z.string()).optional(),
     channelId: uuid.optional(),
     conversationId: uuid.optional(),
     tempId: z.string().optional() // For optimistic UI handling
 }).refine(data => !!data.channelId || !!data.conversationId, {
     message: "Either channelId or conversationId must be provided"
+}).refine(data => (data.content && data.content.trim().length > 0) || (data.attachments && data.attachments.length > 0), {
+    message: "Message must contain either text or attachments"
 });
 
 export const typingSchema = z.object({

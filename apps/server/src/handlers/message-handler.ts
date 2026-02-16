@@ -18,7 +18,7 @@ export class MessageHandler {
       const { channelId, content, attachments = [] } = payload;
 
       // Validate message
-      if (!content || content.trim().length === 0) {
+      if ((!content || content.trim().length === 0) && attachments.length === 0) {
         ws.send(JSON.stringify({
           type: WS_EVENTS.ERROR,
           payload: { message: 'Message content cannot be empty' }
@@ -114,7 +114,7 @@ export class MessageHandler {
       const { conversationId, content, attachments = [] } = payload;
 
       // Validate message
-      if (!content || content.trim().length === 0) {
+      if ((!content || content.trim().length === 0) && attachments.length === 0) {
         ws.send(JSON.stringify({
           type: WS_EVENTS.ERROR,
           payload: { message: 'Message content cannot be empty' }
