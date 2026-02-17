@@ -125,35 +125,14 @@ export const useChatStore = create<ChatState>((set) => ({
     }));
   },
 
-  clearChannel: async (channelId) => {
-    // Determine if it's a DM or Channel based on ID format or state
-    // For now, we'll try both or assume based on route. 
-    // Actually, store doesn't know context easily. 
-    // Let's assume the caller handles the API call or we do it here.
-    // Given the previous implementation was synchronous, let's make it async and try to clear via API.
-
-    try {
-      // Optimistic update
-      set(state => {
-        const newMessages = { ...state.messages };
-        delete newMessages[channelId];
-        return { messages: newMessages };
-      });
-
-      // Attempt to clear via API
-      // We'll try conversation first, then channel if that fails 
-      // This is a bit hacky, ideally we pass the type.
-      // But since UUIDs are unique, we can try.
-      let isDm = false;
-      // Simple heuristic: if it's in the URL as /me/, it's a DM (but store doesn't know URL)
-      // We can check if it exists in conversations list? No access here.
-
-      // Let's rely on the separate `clearHistory` action I'll add below, 
-      // or just update this one to be intelligent.
-      // Actually, let's add `clearMessages` separate async action.
-    } catch (e) {
-      console.error("Failed to clear channel", e);
-    }
+  clearChannel: (channelId) => {
+    // Note: This only clears local state optimistically.
+    // For API-based clearing with proper type handling, use clearMessages() instead.
+    set(state => {
+      const newMessages = { ...state.messages };
+      delete newMessages[channelId];
+      return { messages: newMessages };
+    });
   },
 
   clearMessages: async (channelId, type: 'channel' | 'dm') => {

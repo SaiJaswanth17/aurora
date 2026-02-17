@@ -5,7 +5,11 @@
     "": {
       "name": "aurora",
       "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^8.55.0",
+        "@typescript-eslint/parser": "^8.55.0",
         "concurrently": "^8.2.2",
+        "eslint": "^8.57.1",
+        "typescript": "^5.9.3",
       },
     },
     "apps/server": {
