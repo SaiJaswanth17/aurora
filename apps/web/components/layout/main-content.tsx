@@ -55,21 +55,36 @@ export function MainContent() {
             .eq('id', activeChannelId)
             .single();
 
-          if (error || !data) return;
+          if (error || !data) {
+            console.error('Failed to fetch conversation:', error);
+            return;
+          }
 
           const members = data.conversation_members as any[];
-          const otherMember = members.find(m => m.user_id !== user?.id) || members[0];
+          const otherMember = members.find(m => m.user_id !== user?.id);
+
+          // Validate that we have proper profile data
+          if (!otherMember || !otherMember.profiles || !otherMember.profiles.username) {
+            console.error('Conversation member missing profile data:', {
+              conversationId: activeChannelId,
+              otherMember,
+              allMembers: members
+            });
+            setDmDetails(null);
+            return;
+          }
 
           setDmDetails({
             id: data.id,
-            name: otherMember?.profiles?.username || 'Unknown User',
-            avatarUrl: otherMember?.profiles?.avatar_url,
-            status: otherMember?.profiles?.status || 'offline',
+            name: otherMember.profiles.username,
+            avatarUrl: otherMember.profiles.avatar_url,
+            status: otherMember.profiles.status || 'offline',
             type: 'dm',
-            targetUserId: otherMember?.user_id
+            targetUserId: otherMember.user_id
           });
         } catch (err) {
           console.error('Failed to fetch DM details:', err);
+          setDmDetails(null);
         }
       } else {
         setDmDetails(null);

@@ -28,6 +28,22 @@ export function ChannelSidebar() {
       if (activeServer || !user) return; // Ensure user is loaded
       setIsConvoLoading(true);
       try {
+        // First, get all conversation IDs where the current user is a member
+        const { data: userMemberships, error: memberError } = await supabase
+          .from('conversation_members')
+          .select('conversation_id')
+          .eq('user_id', user.id);
+
+        if (memberError) throw memberError;
+
+        if (!userMemberships || userMemberships.length === 0) {
+          setConversations([]);
+          return;
+        }
+
+        const conversationIds = userMemberships.map(m => m.conversation_id);
+
+        // Now fetch those conversations with all members
         const { data, error } = await supabase
           .from('conversations')
           .select(`
@@ -42,32 +58,31 @@ export function ChannelSidebar() {
               )
             )
           `)
-          .eq('type', 'dm');
+          .eq('type', 'dm')
+          .in('id', conversationIds);
 
         if (error) throw error;
 
         const formatted = data?.map(convo => {
           const members = convo.conversation_members as any[];
-          const otherMember = members.find(m => m.user_id !== user.id) || members[0];
+          const otherMember = members.find(m => m.user_id !== user.id);
+          
+          // Skip if no other member found or if profile data is missing
+          if (!otherMember || !otherMember.profiles) {
+            console.warn('Conversation missing member data:', convo.id);
+            return null;
+          }
+
           return {
             id: convo.id,
-            userId: otherMember?.user_id || 'unknown',
-            username: otherMember?.profiles?.username || 'Unknown User',
-            avatarUrl: otherMember?.profiles?.avatar_url,
-            status: otherMember?.profiles?.status || 'offline'
+            userId: otherMember.user_id,
+            username: otherMember.profiles.username || 'Unknown User',
+            avatarUrl: otherMember.profiles.avatar_url,
+            status: otherMember.profiles.status || 'offline'
           };
-        }) || [];
+        }).filter(Boolean) || []; // Remove null entries
 
-        // Deduplicate and remove self-DMs if any
-        const uniqueConversations = formatted
-          .filter(c => c.userId !== user.id) // Filter out self
-          .filter((convo, index, self) =>
-            index === self.findIndex((t) => (
-              t.username === convo.username
-            ))
-          );
-
-        setConversations(uniqueConversations);
+        setConversations(formatted);
       } catch (err) {
         console.error('Failed to fetch conversations:', err);
       } finally {
