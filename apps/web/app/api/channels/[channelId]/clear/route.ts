@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 
 export async function DELETE(
-    request: Request,
+    _request: Request,
     { params }: { params: { channelId: string } }
 ) {
     try {
