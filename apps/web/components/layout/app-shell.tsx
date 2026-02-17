@@ -87,11 +87,7 @@ export function AppShell({ children }: { children?: React.ReactNode }) {
       </div>
 
       {/* Channel Sidebar - 240px wide */}
-      <div className={`
-        fixed inset-y-0 left-[72px] w-60 bg-discord-secondary flex-shrink-0 z-10 transform transition-transform duration-200 ease-in-out
-        md:relative md:translate-x-0 md:left-0
-        ${false ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-      `}>
+      <div className="fixed inset-y-0 left-[72px] w-60 bg-discord-secondary flex-shrink-0 z-10 transform transition-transform duration-200 ease-in-out md:relative md:translate-x-0 md:left-0 -translate-x-full md:translate-x-0">
         <ChannelSidebar />
       </div>
 
