@@ -18,7 +18,7 @@ interface Friend {
 
 export function FriendsList() {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<FriendStatus>('online');
+    const [activeTab, _setActiveTab] = useState<FriendStatus>('online');
     const [friends, setFriends] = useState<Friend[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const supabase = createClient();
