@@ -152,9 +152,14 @@ export const useAuthStore = create<AuthState & AuthActions>()(
           });
 
           if (error) {
+            console.error('AuthStore: Supabase signUp error:', error);
             // Check for rate limit error
-            if (error.message.includes('rate limit exceeded')) {
-              throw new Error('Email rate limit exceeded. Please try again in an hour or increase your limits in the Supabase Dashboard (Authentication -> Settings -> Rate Limits).');
+            if (error.message.toLowerCase().includes('rate limit exceeded')) {
+              throw new Error('Email rate limit exceeded. Please try again in an hour or increase your limits in the Supabase Dashboard.');
+            }
+            // Add more specific database error mapping if possible
+            if (error.message.toLowerCase().includes('database error')) {
+              throw new Error('Database error saving account. This might be due to a temporary connection issue. Please try again.');
             }
             throw error;
           }

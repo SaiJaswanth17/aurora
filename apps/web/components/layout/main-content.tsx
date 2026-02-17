@@ -30,6 +30,9 @@ export function MainContent() {
   const { joinConversation, leaveConversation, joinChannel, leaveChannel } = useChatWebSocket();
   const { initiateCall } = useCall();
 
+  // Determine if the active channel is a DM conversation
+  const isDm = !!dmDetails;
+
   useEffect(() => {
     async function fetchDmDetails() {
       // If we have an active channel ID but no server channel, it might be a DM
@@ -157,7 +160,6 @@ export function MainContent() {
   }, [showOptions]);
 
   const channelName = activeChannel ? activeChannel.name : (dmDetails?.name || '');
-  const isDm = !!dmDetails;
 
 
 
