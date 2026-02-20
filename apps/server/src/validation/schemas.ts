@@ -37,8 +37,10 @@ export const joinLeaveSchema = z.object({
     message: "Either channelId or conversationId must be provided"
 });
 
-// Wrapper Schema
+
+// Wrapper Schema - accept any string type so call:signal and future events are not dropped
 export const socketMessageSchema = z.object({
-    type: z.nativeEnum(WS_EVENTS),
+    type: z.string(),
     payload: z.any()
 });
+

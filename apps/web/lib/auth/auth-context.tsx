@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { createClient } from '../supabase/client';
 import { useAuthStore, type AuthState, type AuthActions } from './auth-store';
@@ -9,7 +9,7 @@ type AuthContextType = AuthState & Omit<AuthActions, 'setLoading' | 'setUser'>;
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: Readonly<{ children: ReactNode }>) {
   const {
     user,
     isAuthenticated,
@@ -26,6 +26,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Listen for auth state changes
   useEffect(() => {
     const supabase = createClient();
+
+    // Check initial session on mount
+    const checkInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        // No valid session, clear any persisted auth state
+        console.log('AuthContext: No valid session found, clearing state');
+        setUser(null);
+      }
+    };
+
+    checkInitialSession();
 
     const {
       data: { subscription },
@@ -90,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, [setUser]);
 
-  const value: AuthContextType = {
+  const value: AuthContextType = useMemo(() => ({
     user,
     isAuthenticated,
     isLoading,
@@ -100,7 +113,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     signUp,
     signOut,
     clearError,
-  };
+  }), [user, isAuthenticated, isLoading, error, lastSignupAttempt, signIn, signUp, signOut, clearError]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

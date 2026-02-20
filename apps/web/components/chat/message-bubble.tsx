@@ -25,7 +25,7 @@ export function MessageBubble({ message, isOwnMessage: isOwn }: MessageBubblePro
   }
 
   return (
-    <div className={`flex w-full py-0.5 px-4 hover:bg-discord-background-modifier-hover group ${isOwn ? '' : ''}`}>
+    <div className={`flex w-full py-2 px-4 hover:bg-discord-background-modifier-hover group transition-colors ${isOwn ? '' : ''}`}>
       {/* Avatar - only show if not same author as prev message (simplified for now, always show) */}
       <div className="mt-0.5 w-10 h-10 rounded-full bg-discord-accent flex-shrink-0 flex items-center justify-center overflow-hidden mr-4 cursor-pointer hover:opacity-80 transition-opacity">
         {message.author?.avatarUrl ? (
@@ -36,18 +36,20 @@ export function MessageBubble({ message, isOwnMessage: isOwn }: MessageBubblePro
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="flex items-center mb-0.5">
-          <span className="font-medium text-discord-text mr-2 hover:underline cursor-pointer">
+        <div className="flex items-center mb-1">
+          <span className="font-semibold text-discord-text mr-2 hover:underline cursor-pointer text-[15px]">
             {message.author?.username || 'Unknown User'}
           </span>
-          <span className="text-xs text-discord-text-muted">
+          <span className="text-[11px] text-discord-text-muted">
             {formatMessageTimestamp(message.createdAt)}
           </span>
         </div>
 
-        <div className="text-[15px] text-discord-text-normal leading-[1.375rem] whitespace-pre-wrap break-words">
-          {message.content}
-        </div>
+        {message.content && (
+          <div className="text-[15px] text-discord-text leading-[1.375rem] whitespace-pre-wrap break-words">
+            {message.content}
+          </div>
+        )}
 
         {/* Attachments */}
         {/* Attachments */}

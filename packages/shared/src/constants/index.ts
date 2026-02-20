@@ -11,6 +11,8 @@ export const WS_EVENTS = {
   LEAVE_CHANNEL: 'leave_channel',
   JOIN_CONVERSATION: 'join_conversation',
   LEAVE_CONVERSATION: 'leave_conversation',
+  // Call signaling (Client -> Server)
+  CALL_SIGNAL: 'call:signal',
 
   // Server -> Client
   AUTH_SUCCESS: 'auth_success',
@@ -21,8 +23,16 @@ export const WS_EVENTS = {
   PRESENCE_UPDATE_BROADCAST: 'presence_update_broadcast',
   USER_JOINED_CHANNEL: 'user_joined_channel',
   USER_LEFT_CHANNEL: 'user_left_channel',
+  // Call signaling (Server -> Client)
+  CALL_START: 'call:start',
+  CALL_ANSWER: 'call:answer',
+  CALL_END: 'call:end',
+  CALL_REJECT: 'call:reject',
+  CALL_CANDIDATE: 'call:candidate',
+  CALL_ERROR: 'call:error',
   ERROR: 'error'
 } as const;
+
 
 // User Statuses
 export const USER_STATUSES = {

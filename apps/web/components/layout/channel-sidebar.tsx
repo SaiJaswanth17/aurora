@@ -145,7 +145,7 @@ export function ChannelSidebar() {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.dispatchEvent(new CustomEvent('open-user-search'));
+                  globalThis.dispatchEvent(new CustomEvent('open-user-search'));
                 }}
                 className="hover:text-discord-text transition-colors opacity-0 group-hover:opacity-100"
                 title="Create DM"

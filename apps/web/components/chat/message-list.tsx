@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { MessageBubble } from './message-bubble';
 import { useChannelMessages, useTypingUsers, useActiveChannel, useChatStore } from '@/stores/chat-store';
 import { useChatWebSocket } from '@/lib/websocket/websocket-hooks';
-
+import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/lib/auth/auth-context';
 import { normalizeMessage } from '@/lib/message-utils';
 
@@ -71,6 +71,45 @@ export function MessageList({ channelId, isDm }: MessageListProps) {
     };
   }, [channelId, onNewMessage, onNewDirectMessage, scrollToBottom]);
 
+  // Supabase Realtime subscription — guaranteed delivery fallback
+  // Works even if WebSocket server misses a broadcast or recipient was briefly disconnected
+  useEffect(() => {
+    if (!channelId) return;
+    const supabase = createClient();
+    const table = isDm ? 'dm_messages' : 'messages';
+    const filterColumn = isDm ? 'conversation_id' : 'channel_id';
+
+    const channel = supabase
+      .channel(`realtime-${table}-${channelId}`)
+      .on(
+        'postgres_changes' as any,
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table,
+          filter: `${filterColumn}=eq.${channelId}`,
+        },
+        async (payload: any) => {
+          if (!payload.new || !payload.new.id) return;
+          // Fetch the full message with author profile
+          const { data } = await supabase
+            .from(table)
+            .select('*, author:profiles(*)')
+            .eq('id', payload.new.id)
+            .single();
+          if (data) {
+            const normalized = normalizeMessage(data);
+            useChatStore.getState().addMessage(channelId, normalized);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [channelId, isDm]);
+
   // Listen for typing indicators
   useEffect(() => {
     if (activeChannel !== channelId) return;
@@ -128,7 +167,7 @@ export function MessageList({ channelId, isDm }: MessageListProps) {
 
   return (
     <div className="flex-1 overflow-y-auto" ref={scrollContainerRef} onScroll={handleScroll}>
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-4 pb-2">
         {messages.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-12">
             <div className="text-center">
